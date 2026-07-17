@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vigilance Coffee | Modern Interface</title>
+    
+    <!-- Eksternal Dependencies -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Link ke file CSS eksternal -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- CUSTOM TOAST NOTIFICATION -->
+    <div id="toast" class="toast">Notifikasi</div>
+
+    <!-- ================= LANDING PAGE ================= -->
+    <div id="landing-page" class="animate-fade">
+        <h1>Vigilance Coffee</h1>
+        <p>Pengalaman ngopi modern, cepat, dan terintegrasi.</p>
+        <div class="role-cards">
+            <div class="role-card" onclick="showPelangganPortal()">
+                <h2>☕ Pelanggan</h2>
+                <p style="font-size: 0.9rem; color: #aaa; margin:0;">Pesan menu favorit Anda langsung dari meja atau ambil ke kasir.</p>
+                <small>MASUK SEBAGAI TAMU &rarr;</small>
+            </div>
+            <div class="role-card" onclick="showPage('admin-login-page')">
+                <h2>🛡️ Admin / Kasir</h2>
+                <p style="font-size: 0.9rem; color: #aaa; margin:0;">Kelola pesanan, pantau omzet, dan cek kondisi kafe via IoT.</p>
+                <small>LOGIN DASHBOARD &rarr;</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= PELANGGAN PORTAL ================= -->
+    <div id="pelanggan-page" class="container hidden animate-fade">
+        <button class="btn-outline" onclick="location.reload()" style="margin-bottom: 30px;">&larr; Kembali ke Beranda</button>
+        
+        <div id="step-metode" class="animate-fade">
+            <h2 class="section-title">Pilih Metode Pesanan</h2>
+            <div class="methods">
+                <div class="method-box" onclick="setMetode('Dine In')">
+                    <div class="icon-wrapper">
+                        <span style="font-size: 1.8rem;">🍽️</span>
+                    </div>
+                    <h3>Dine In</h3>
+                </div>
+                <div class="method-box" onclick="setMetode('Take Away')">
+                    <div class="icon-wrapper">
+                        <span style="font-size: 1.8rem;">🛍️</span>
+                    </div>
+                    <h3>Take Away</h3>
+                </div>
+            </div>
+            
+            <div id="meja-section" class="hidden animate-fade">
+                <h2 class="section-title" style="font-size: 1.6rem;">Pilih Meja Anda</h2>
+                <div id="meja-container" class="meja-grid"></div>
+            </div>
+        </div>
+
+        <div id="step-menu" class="hidden animate-fade">
+            <h2 id="judul-pesanan" class="section-title">Menu Kami</h2>
+            
+            <!-- Tempat filter kategori -->
+            <div id="kategori-filter-container" class="category-filter"></div>
+            
+            <div class="menu-portal-layout">
+                <!-- GRID MENU (Kiri) -->
+                <div id="menu-container" class="menu-grid"></div>
+                
+                <!-- SIDEBAR KERANJANG (Kanan) -->
+                <div class="cart-sidebar">
+                    <h3 class="cart-title">🛒 Keranjang</h3>
+                    
+                    <!-- Wadah Item Keranjang yang sebelumnya hilang -->
+                    <div id="cart-items" class="cart-items-container">
+                        <p class="empty-cart-text">Keranjang masih kosong</p>
+                    </div>
+                    
+                    <div class="cart-summary">
+                        <div class="summary-row">
+                            <span>Subtotal</span>
+                            <span id="cart-subtotal">Rp 0</span>
+                        </div>
+                        <div class="payment-method-section">
+                            <h4>Metode Pembayaran</h4>
+                            <div class="payment-options">
+                                <div class="payment-opt active" onclick="setMetodeBayar('Cash')">Cash</div>
+                                <div class="payment-opt" onclick="setMetodeBayar('QRIS')">QRIS</div>
+                            </div>
+                        </div>
+                        <button class="btn-checkout" onclick="checkout()">Konfirmasi & Bayar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= ADMIN LOGIN ================= -->
+    <div id="admin-login-page" class="hidden animate-fade" style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(rgba(17, 10, 8, 0.75), rgba(17, 10, 8, 0.85)), url('https://i.pinimg.com/1200x/32/51/72/325172abdf78322e653d17604839bdf3.jpg') center/cover no-repeat;">        <div class="admin-login-box">
+            <button class="btn-outline" onclick="location.reload()" style="position: absolute; top: 30px; left: 30px; color: white; border-color: white;">&larr; Beranda</button>
+            <h2>Admin Portal</h2>
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="admin-user" placeholder="Masukkan username">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="admin-pass" placeholder="Masukkan password">
+            </div>
+            <button class="btn-primary" style="width: 100%; padding: 14px; font-size: 1rem; margin-top: 10px;" onclick="loginAdmin()">Login Masuk</button>
+        </div>
+    </div>
+
+    <!-- ================= ADMIN DASHBOARD ================= -->
+    <div id="admin-dashboard-page" class="admin-layout hidden">
+        <div class="sidebar">
+            <h2>Vigilance.</h2>
+            <div class="nav-item active" onclick="switchAdminTab('dashboard')">📊 Dashboard</div>
+            <div class="nav-item" onclick="switchAdminTab('orderan')">📝 Orderan Masuk</div>
+            <div class="nav-item" onclick="switchAdminTab('sensor')">📡 Sensor (IoT)</div>
+            <div class="nav-item" onclick="switchAdminTab('menu')">📋 Kelola Menu</div>
+            <div style="flex:1"></div>
+            <div class="nav-item nav-item-logout" onclick="location.reload()">🚪 Keluar</div>        </div>
+        
+        <div class="main-content">
+            <div class="header-top">
+                <h1 id="page-title">Dashboard Analitik</h1>
+                <div class="clock-badge" id="realtime-clock">--:--:--</div>
+            </div>
+
+            <div id="tab-dashboard" class="animate-fade">
+                <div class="stats-grid">
+                <div class="stat-card">
+                    <small>Omzet Hari Ini</small>
+                    <h2 id="stat-omzet" style="color: var(--success);">Rp0</h2>
+                </div>
+                <div class="stat-card">
+                    <small>Meja Terisi</small>
+                    <h2 id="stat-meja" style="color: #EACCA4;">0/0</h2>
+                </div>
+                <div class="stat-card">
+                    <small>Orderan Baru</small>
+                    <h2 id="stat-order" style="color: var(--accent-orange);">0</h2>
+                </div>
+                <div class="stat-card">
+                    <small>Status Sensor</small>
+                    <h2 id="stat-sensor">0/4 Aktif</h2>
+                </div>                </div>
+                <div class="chart-container"><h3 style="margin-bottom: 20px; color: #F7FAFC; font-size: 1.1rem;">Penjualan Kategori Menu</h3><canvas id="salesChart"></canvas></div>
+            </div>
+
+            <div id="tab-orderan" class="hidden animate-fade"><div id="orderan-container"></div></div>
+            
+            <div id="tab-sensor" class="hidden animate-fade">
+                <p style="color: var(--text-muted); margin-bottom: 25px;">Sistem sedang memantau kondisi lingkungan kafe secara <i>real-time</i> via sensor IoT.</p>
+                <div class="stats-grid" id="iot-container"></div>
+            </div>
+
+            <div id="tab-menu" class="hidden animate-fade">
+                <button class="btn-primary" style="margin-bottom: 20px;" onclick="openMenuModal()">+ Tambah Menu Baru</button>
+                <div class="admin-table-container">
+                    <table>
+                        <thead><tr><th>ID Menu</th><th>Nama Menu</th><th>Harga</th><th>Status</th><th>Aksi</th></tr></thead>
+                        <tbody id="admin-menu-table"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= MODALS ================= -->
+    <div id="menu-modal" class="modal-overlay hidden">
+        <div class="modal">
+            <h3 id="modal-title">Form Data Menu</h3>
+            <input type="hidden" id="form-id">
+            <div class="form-group"><label>Nama Menu</label><input type="text" id="form-nama"></div>
+            <div class="form-group"><label>Harga (Rp)</label><input type="number" id="form-harga"></div>
+            <div class="form-group"><label>Kategori</label><select id="form-kategori"><option value="Brew">Brew</option><option value="Bites">Bites</option></select></div>
+            <div class="form-group"><label>Ketersediaan</label><select id="form-status"><option value="true">Tersedia</option><option value="false">Habis (Sold Out)</option></select></div>
+            <div style="display: flex; gap: 15px; justify-content: flex-end; margin-top: 30px;">
+                <button class="btn-outline" onclick="closeMenuModal()">Batal</button>
+                <button class="btn-primary" onclick="saveMenu()">Simpan Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= JAVASCRIPT ================= -->
+    <script>
+        const API_BASE = 'http://localhost:3000';
+        let state = { keranjang: [], pesananMode: '', noMeja: null, kategoriAktif: 'Brew', metodeBayar: 'Cash' };
+        let sensorInterval;
+        let myChartInstance = null;
+
+        // Custom Toast Function yang sudah diperbaiki
+        function showToast(message, isError = false) {
+            const toast = document.getElementById("toast");
+            if (!toast) {
+                console.log("Notifikasi:", message);
+                return; 
+            }
+            toast.innerText = message;
+            toast.style.backgroundColor = isError ? "var(--danger)" : "var(--success)";
+            toast.className = "show";
+            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+        }
+
+        function startClock() {
+            setInterval(() => {
+                const now = new Date();
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+                document.getElementById('realtime-clock').innerText = now.toLocaleDateString('id-ID', options);
+            }, 1000);
+        }
+
+        function showPage(pageId) {
+            document.querySelectorAll('body > div:not(#toast):not(.modal-overlay)').forEach(el => el.classList.add('hidden'));
+            const page = document.getElementById(pageId);
+            page.classList.remove('hidden');
+            page.classList.remove('animate-fade');
+            void page.offsetWidth; 
+            page.classList.add('animate-fade');
+        }
+
+        // ================== PELANGGAN LOGIC ==================
+        function showPelangganPortal() {
+            showPage('pelanggan-page');
+            document.getElementById('step-metode').classList.remove('hidden');
+            document.getElementById('step-menu').classList.add('hidden');
+        }
+
+// ================== PELANGGAN LOGIC ==================
+        async function setMetode(metode) {
+            state.pesananMode = metode;
+            
+            if(metode === 'Dine In') {
+                document.getElementById('meja-section').classList.remove('hidden');
+                
+                // Baca data orderan aktif agar meja yang terisi sinkron dengan Admin
+                let savedOrders = JSON.parse(localStorage.getItem('vigilance_orders')) || [];
+                const activeDineIn = savedOrders.filter(o => o.status !== 'Selesai' && o.meja.includes('Meja'));
+                
+                // Ambil nomor mejanya saja (Misal "Meja 4" jadi angka 4)
+                const mejaTerpakai = activeDineIn.map(o => parseInt(o.meja.replace('Meja ', '')));
+
+                const container = document.getElementById('meja-container');
+                container.innerHTML = '';
+                
+                // Render 12 meja
+                for(let i = 1; i <= 12; i++) {
+                    const isTerisi = mejaTerpakai.includes(i);
+                    const div = document.createElement('div');
+                    
+                    div.className = `meja-item ${isTerisi ? 'terisi' : 'kosong'}`;
+                    div.innerHTML = `Meja ${i}`;
+                    
+                    if(!isTerisi) {
+                        div.onclick = () => { state.noMeja = i; bukaMenuPelanggan(); };
+                    } else {
+                        // Jika meja terisi, tampilkan notifikasi dan jangan izinkan diklik
+                        div.onclick = () => showToast(`Meja ${i} sedang digunakan!`, true);
+                    }
+                    
+                    container.appendChild(div);
+                }
+            } else {
+                state.noMeja = null;
+                bukaMenuPelanggan();
+            }
+        }
+// ================== INISIALISASI DATA MENU ==================
+        const defaultMenu = [
+            { id_menu: 'B1', nama_menu: 'V60 Arabica', kategori: 'Brew', harga: 35000, img: 'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=500&h=300&fit=crop', tersedia: true },
+            { id_menu: 'B2', nama_menu: 'Café Latte', kategori: 'Brew', harga: 28000, img: 'https://images.unsplash.com/photo-1570968915860-54d5c301fa9f?w=500&h=300&fit=crop', tersedia: true },
+            { id_menu: 'B3', nama_menu: 'Cappuccino', kategori: 'Brew', harga: 30000, img: 'https://images.unsplash.com/photo-1534778101976-62847782c213?w=500&h=300&fit=crop', tersedia: true },
+            { id_menu: 'F1', nama_menu: 'Almond Croissant', kategori: 'Bites', harga: 25000, img: 'https://i.pinimg.com/736x/02/c6/d2/02c6d242918ad001bf4bbf73e52f478c.jpg', tersedia: true },
+            { id_menu: 'F2', nama_menu: 'Choco Brownie', kategori: 'Bites', harga: 20000, img: 'https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?w=500&h=300&fit=crop', tersedia: true },
+            { id_menu: 'F3', nama_menu: 'Cheese Cake', kategori: 'Bites', harga: 32000, img: 'https://images.unsplash.com/photo-1533134242443-d4fd215305ad?w=500&h=300&fit=crop', tersedia: true }
+        ];
+
+        // Tarik data dari local storage. Jika kosong, pakai defaultMenu.
+        let menuDataKatalog = JSON.parse(localStorage.getItem('vigilance_menu'));
+        if (!menuDataKatalog) {
+            menuDataKatalog = defaultMenu;
+            localStorage.setItem('vigilance_menu', JSON.stringify(menuDataKatalog));
+        }
+        window.tambahKeranjang = function(id) {
+            const item = menuDataKatalog.find(m => m.id_menu === id);
+            if (!item) return;
+
+            const existingItem = state.keranjang.find(k => k.id_menu === id);
+            if (existingItem) {
+                existingItem.qty += 1;
+            } else {
+                state.keranjang.push({ id_menu: item.id_menu, nama_menu: item.nama_menu, harga: item.harga, qty: 1 });
+            }
+
+            try {
+                renderKeranjangUI();
+                showToast(`✔ ${item.nama_menu} ditambahkan!`);
+            } catch (error) {
+                console.error("Gagal merender keranjang:", error);
+            }
+        };
+
+        // Fungsi baru untuk mengatur +/- qty keranjang
+        window.ubahQty = function(id, change) {
+            const item = state.keranjang.find(k => k.id_menu === id);
+            if (item) {
+                item.qty += change;
+                if (item.qty <= 0) {
+                    state.keranjang = state.keranjang.filter(k => k.id_menu !== id);
+                }
+                renderKeranjangUI();
+            }
+        };
+
+        function setMetodeBayar(metode) {
+            state.metodeBayar = metode;
+            document.querySelectorAll('.payment-opt').forEach(el => {
+                el.classList.remove('active');
+                if (el.innerText === metode) el.classList.add('active');
+            });
+        }
+
+        // FUNGSI RENDER KERANJANG YANG DIPERBAIKI
+        function renderKeranjangUI() {
+            const container = document.getElementById('cart-items');
+            const totalElement = document.getElementById('cart-subtotal');
+            
+            if(!container || !totalElement) {
+                console.error("Elemen keranjang (#cart-items) tidak ditemukan!");
+                return; 
+            }
+            
+            if (state.keranjang.length === 0) {
+                container.innerHTML = `<p class="empty-cart-text">Keranjang masih kosong</p>`;
+                totalElement.innerText = 'Rp 0';
+                return;
+            }
+
+            container.innerHTML = '';
+            let subtotal = 0;
+
+            state.keranjang.forEach(item => {
+                const totalItemPrice = item.harga * item.qty;
+                subtotal += totalItemPrice;
+
+                const div = document.createElement('div');
+                div.className = 'cart-item animate-fade';
+                div.innerHTML = `
+                    <div class="cart-item-info">
+                        <div class="cart-item-name">${item.nama_menu}</div>
+                        <div class="cart-item-price">Rp ${(item.harga).toLocaleString('id-ID')}</div>
+                    </div>
+                    <div class="cart-item-control">
+                        <button class="btn-qty" onclick="ubahQty('${item.id_menu}', -1)">-</button>
+                        <span class="qty-val">${item.qty}</span>
+                        <button class="btn-qty" onclick="ubahQty('${item.id_menu}', 1)">+</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+
+            totalElement.innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
+        }
+
+        async function bukaMenuPelanggan() {
+            document.getElementById('step-metode').classList.add('hidden');
+            document.getElementById('step-menu').classList.remove('hidden');
+            document.getElementById('judul-pesanan').innerText = state.pesananMode === 'Dine In' ? `Menu - Meja ${state.noMeja}` : 'Menu - Take Away';
+            renderKatalog();
+            renderKeranjangUI(); // Panggil render awal
+        }
+
+        function setKategori(kategoriPilihan) {
+            state.kategoriAktif = kategoriPilihan;
+            renderKatalog();
+        }
+
+        function renderKatalog() {
+            const container = document.getElementById('menu-container');
+            let filterContainer = document.getElementById('kategori-filter-container');
+            
+            filterContainer.innerHTML = `
+                <button class="filter-btn ${state.kategoriAktif === 'Brew' ? 'active' : ''}" onclick="setKategori('Brew')">☕ Brew</button>
+                <button class="filter-btn ${state.kategoriAktif === 'Bites' ? 'active' : ''}" onclick="setKategori('Bites')">🥐 Bites</button>
+            `;
+
+            container.innerHTML = '';
+            const menuTampil = menuDataKatalog.filter(m => m.kategori === state.kategoriAktif);
+            
+            menuTampil.forEach(m => {
+                const div = document.createElement('div');
+                div.className = 'menu-card animate-fade'; 
+                div.innerHTML = `
+                    <div>
+                        <img src="${m.img}" alt="${m.nama_menu}" class="menu-img">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <span style="font-weight:700; color:#1E120D;">${m.nama_menu}</span>
+                            <span style="font-size: 0.75rem; background: #EDF2F7; padding: 4px 8px; border-radius: 4px; color:#1E120D;">${m.kategori}</span>
+                        </div>
+                        <div class="menu-price">Rp${m.harga.toLocaleString('id-ID')}</div>
+                    </div>
+                    <button class="btn-primary" style="width:100%" onclick="tambahKeranjang('${m.id_menu}')">+ Tambah</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // ================== ADMIN LOGIC ==================
+        async function loginAdmin() {
+            const user = document.getElementById('admin-user').value;
+            const pass = document.getElementById('admin-pass').value;
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: user, password: pass }) });
+                if(res.ok) { showPage('admin-dashboard-page'); startClock(); switchAdminTab('dashboard'); } 
+                else { showToast("Username atau password salah!", true); }
+            } catch(err) { showToast("Gagal terkoneksi dengan Server", true); }
+        }
+
+        function switchAdminTab(tabName) {
+            if (sensorInterval) clearInterval(sensorInterval);
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            
+            ['tab-dashboard', 'tab-orderan', 'tab-sensor', 'tab-menu'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            document.getElementById('page-title').innerText = event.currentTarget.innerText.replace(/[^\w\s]/gi, '').trim();
+            
+            if(tabName === 'dashboard') { loadDashboardStats(); loadChart(); } 
+            else if(tabName === 'orderan') { loadAdminOrderan(); } 
+            else if(tabName === 'sensor') { loadIoTSensors(); sensorInterval = setInterval(loadIoTSensors, 3000); } 
+            else if(tabName === 'menu') { loadAdminMenu(); }
+        }
+
+// ================== ADMIN DASHBOARD & CHART (REAL DATA) ==================
+        async function loadDashboardStats() {
+            // Tarik data asli yang dipesan pelanggan dari memory browser
+            let savedOrders = JSON.parse(localStorage.getItem('vigilance_orders')) || [];
+            
+            // Hitung total uang masuk & orderan baru
+            const totalOmzet = savedOrders.reduce((sum, order) => sum + order.total, 0);
+            const orderanBaru = savedOrders.filter(o => o.status === 'Menunggu').length;
+
+            // --- LOGIKA BARU: HITUNG MEJA TERISI ---
+            const totalMejaKafe = 12; // Kita asumsikan kafe Anda punya 12 meja
+            
+            // Saring orderan yang berstatus Dine-In (mengandung kata 'Meja') dan belum Selesai
+            const activeDineInOrders = savedOrders.filter(o => o.status !== 'Selesai' && o.meja.includes('Meja'));
+            
+            // Gunakan Set untuk menghitung meja unik (berjaga-jaga jika 1 meja ada lebih dari 1 orderan)
+            const mejaTerisi = new Set(activeDineInOrders.map(o => o.meja)).size;
+
+            // Tampilkan ke layar
+            document.getElementById('stat-omzet').innerText = `Rp${totalOmzet.toLocaleString('id-ID')}`;
+            document.getElementById('stat-order').innerText = orderanBaru;
+            document.getElementById('stat-meja').innerText = `${mejaTerisi} / ${totalMejaKafe}`;
+        }
+// ================== SENSOR IoT (SIMULASI DINAMIS REAL-TIME) ==================
+        function loadIoTSensors() {
+            // Daftar lokasi sensor di kafe Anda
+            const locations = ['Area Bar', 'Meja Depan', 'Meja Tengah', 'Outdoor'];
+            
+            // Hasilkan data acak yang fluktuatif untuk mensimulasikan sensor asli
+            const sensors = locations.map(loc => {
+                // Suhu antara 22.0°C - 28.0°C
+                const suhu = (Math.random() * (28 - 22) + 22).toFixed(1);
+                // Kebisingan antara 40dB (sepi) - 80dB (ramai/berisik)
+                const kebisingan = Math.floor(Math.random() * (80 - 40) + 40);
+                
+                return { lokasi: loc, suhu: parseFloat(suhu), kebisingan: kebisingan };
+            });
+
+            // 1. TAMPILKAN KE TAB SENSOR
+            const container = document.getElementById('iot-container');
+            if(container) {
+                container.innerHTML = ''; // Kosongkan sebelum update
+                
+                sensors.forEach(s => {
+                    // Logika warna status: Merah jika terlalu panas/berisik, Kuning jika sedang, Hijau jika aman
+                    let statusColor = (s.suhu > 27 || s.kebisingan > 75) ? 'var(--danger)' : ((s.suhu > 25 || s.kebisingan > 65) ? 'var(--warning)' : 'var(--success)');
+                    
+                    const div = document.createElement('div');
+                    div.className = 'stat-card iot-card animate-fade';
+                    div.style.borderLeftColor = statusColor;
+                    div.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <small>${s.lokasi}</small>
+                            <span class="status-dot" style="background-color: ${statusColor}; color: ${statusColor}; display: inline-block; width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 5px ${statusColor};"></span>
+                        </div>
+                        <div class="iot-data-container" style="margin-top: 15px; display: flex; justify-content: space-between;">
+                            <div>
+                                <small style="color: var(--text-muted);">🌡️ Suhu</small>
+                                <div class="iot-val" style="color: #D4A373; font-size: 1.3rem; font-weight: bold;">${s.suhu}°C</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <small style="color: var(--text-muted);">🔊 Kebisingan</small>
+                                <div class="iot-val" style="color: #A0AEC0; font-size: 1.3rem; font-weight: bold;">${s.kebisingan} <span style="font-size:0.8rem;">dB</span></div>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            }
+
+            // 2. UPDATE ANGKA DI DASHBOARD UTAMA
+           const statSensorEl = document.getElementById('stat-sensor');
+            if (statSensorEl) {
+                statSensorEl.innerText = `${sensors.length}/${locations.length} Aktif`;
+                statSensorEl.style.color = "#5DADE2"; 
+            }
+        }
+                // ================== FUNGSI CHECKOUT (REAL DATA) ==================
+        async function checkout() {
+            if (state.keranjang.length === 0) {
+                showToast("Keranjang Anda masih kosong, silakan pilih menu dulu!", true);
+                return;
+            }
+
+            // Hitung total bayar
+            const totalBayar = state.keranjang.reduce((sum, item) => sum + (item.harga * item.qty), 0);
+            
+            // Format item jadi string (contoh: "1x V60 Arabica, 2x Cheese Cake")
+            const itemsString = state.keranjang.map(k => `${k.qty}x ${k.nama_menu}`).join(', ');
+
+            // Susun data orderan baru
+            const newOrder = {
+                id_order: '#ORD-' + Math.floor(Math.random() * 10000),
+                meja: state.pesananMode === 'Dine In' ? `Meja ${state.noMeja}` : 'Take Away',
+                total: totalBayar,
+                status: 'Menunggu',
+                items: itemsString,
+                keranjangAsli: [...state.keranjang] // Disimpan untuk dihitung di grafik
+            };
+
+            // Ambil data orderan lama dari browser, lalu tambahkan yang baru
+            let savedOrders = JSON.parse(localStorage.getItem('vigilance_orders')) || [];
+            savedOrders.push(newOrder);
+            
+            // Simpan kembali ke browser
+            localStorage.setItem('vigilance_orders', JSON.stringify(savedOrders));
+
+            showToast("✅ Pesanan berhasil dibuat! Mohon tunggu sebentar.");
+            
+            // Reset keranjang
+            state.keranjang = [];
+            renderKeranjangUI();
+            
+            setTimeout(() => {
+                location.reload(); 
+            }, 2500);
+        }
+// ================== ADMIN DASHBOARD & CHART (REAL DATA) ==================
+        async function loadDashboardStats() {
+           let savedOrders = JSON.parse(localStorage.getItem('vigilance_orders')) || [];
+            
+            const totalOmzet = savedOrders.reduce((sum, order) => sum + order.total, 0);
+            const orderanBaru = savedOrders.filter(o => o.status === 'Menunggu').length;
+            const totalMejaKafe = 12; 
+            const activeDineInOrders = savedOrders.filter(o => o.status !== 'Selesai' && o.meja.includes('Meja'));
+            const mejaTerisi = new Set(activeDineInOrders.map(o => o.meja)).size;
+
+            document.getElementById('stat-omzet').innerText = `Rp${totalOmzet.toLocaleString('id-ID')}`;
+            document.getElementById('stat-order').innerText = orderanBaru;
+            document.getElementById('stat-meja').innerText = `${mejaTerisi} / ${totalMejaKafe}`;
+            
+            // --- TAMBAHKAN BARIS INI ---
+            loadIoTSensors();
+        }
+
+        async function loadChart() {
+            const ctx = document.getElementById('salesChart');
+            if (!ctx) return;
+            if (myChartInstance) myChartInstance.destroy();
+
+            let savedOrders = JSON.parse(localStorage.getItem('vigilance_orders')) || [];
+            
+            // Variabel penghitung item terjual berdasarkan kategori
+            let brewCount = 0;
+            let bitesCount = 0;
+
+            // Hitung setiap item yang dibeli dari setiap orderan
+            savedOrders.forEach(order => {
+                if (order.keranjangAsli) {
+                    order.keranjangAsli.forEach(item => {
+                        const menuInfo = menuDataKatalog.find(m => m.id_menu === item.id_menu);
+                        if (menuInfo) {
+                            if (menuInfo.kategori === 'Brew') brewCount += item.qty;
+                            if (menuInfo.kategori === 'Bites') bitesCount += item.qty;
+                        }
+                    });
+                }
+            });
+
+            renderChart(ctx, ['Brew (Kopi)', 'Bites (Kue)'], [brewCount, bitesCount]);
+        }
+
+        function renderChart(ctx, labels, data) {
+            myChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Porsi Terjual',
+                        data: data,
+                        backgroundColor: ['#D4A373', '#FAEDCD'], 
+                        borderRadius: 6
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+            });
+        }
+
+        // ================== ADMIN ORDERAN MASUK (REAL DATA) ==================
+        async function loadAdminOrderan() {
+            let savedOrders = JSON.parse(localStorage.getItem('vigilance_orders')) || [];
+            renderOrderanList(savedOrders);
+        }
+
+        function renderOrderanList(orders) {
+            const container = document.getElementById('orderan-container');
+            container.innerHTML = ''; 
+            
+            if (orders.length === 0) {
+                container.innerHTML = '<p style="color: white; text-align: center;">Belum ada orderan masuk hari ini.</p>';
+                return;
+            }
+
+            // Tampilkan orderan dari yang paling baru (di-reverse)
+            [...orders].reverse().forEach(o => {
+                const isSelesai = o.status === 'Selesai';
+                const statusColor = isSelesai ? 'var(--success)' : 'var(--accent-orange)';
+                const btnHtml = isSelesai 
+                    ? `<span style="color: green; font-weight: bold;">✔ Tuntas</span>` 
+                    : `<button class="btn-primary" style="padding: 6px 15px; font-size: 0.85rem; margin: 0;" onclick="selesaikanOrder('${o.id_order}')">Tandai Selesai</button>`;
+
+                const div = document.createElement('div');
+                div.className = 'admin-order-card animate-fade';
+                div.style = `background: white; padding: 20px; margin-bottom: 15px; border-radius: 8px; opacity: ${isSelesai ? '0.7' : '1'};`;
+                div.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom: 12px;">
+                        <strong style="color: #1E120D; font-size: 1.1rem;">${o.id_order} - ${o.meja}</strong>
+                        <span style="background: ${statusColor}; color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: bold;">${o.status}</span>
+                    </div>
+                    <p style="color: #555; margin: 0 0 15px 0; font-size: 0.95rem; border-left: 3px solid #D4A373; padding-left: 10px;">
+                        ${o.items}
+                    </p>
+                    <div style="display:flex; justify-content:space-between; align-items: center; border-top: 1px solid #eee; padding-top: 12px;">
+                        <strong style="color: #1E120D;">Total: Rp ${o.total.toLocaleString('id-ID')}</strong>
+                        ${btnHtml}
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Fungsi agar Admin bisa memproses pesanan
+        window.selesaikanOrder = function(idOrder) {
+            let savedOrders = JSON.parse(localStorage.getItem('vigilance_orders')) || [];
+            const index = savedOrders.findIndex(o => o.id_order === idOrder);
+            if (index !== -1) {
+                savedOrders[index].status = 'Selesai';
+                localStorage.setItem('vigilance_orders', JSON.stringify(savedOrders)); // Update data di memori
+                loadAdminOrderan(); // Segarkan tampilan daftar order
+                loadDashboardStats(); // Segarkan angka dashboard (Orderan Baru berkurang)
+                showToast(`Orderan ${idOrder} selesai!`);
+            }
+        };
+
+        // ================== CRUD KELOLA MENU (ADMIN) ==================
+        
+        // 1. READ: Menampilkan daftar menu di tabel Admin
+        function loadAdminMenu() {
+            const tbody = document.getElementById('admin-menu-table');
+            tbody.innerHTML = '';
+            
+            // Refresh data dari memori
+            menuDataKatalog = JSON.parse(localStorage.getItem('vigilance_menu')) || [];
+            
+            menuDataKatalog.forEach(m => {
+                const tr = document.createElement('tr');
+                const statusHtml = m.tersedia !== false 
+                    ? '<span style="color: var(--success); font-weight: 600;">Tersedia</span>' 
+                    : '<span style="color: var(--danger); font-weight: 600;">Habis</span>';
+                
+                tr.innerHTML = `
+                    <td>${m.id_menu}</td>
+                    <td><strong>${m.nama_menu}</strong><br><small style="color: #888;">${m.kategori}</small></td>
+                    <td>Rp ${m.harga.toLocaleString('id-ID')}</td>
+                    <td>${statusHtml}</td>
+                    <td style="display: flex; gap: 8px;">
+                        <button class="btn-outline" style="padding: 6px 12px; font-size: 0.8rem; margin: 0;" onclick="openMenuModal('${m.id_menu}')">Edit</button>
+                        <button class="btn-outline" style="padding: 6px 12px; font-size: 0.8rem; margin: 0; color: var(--danger); border-color: var(--danger);" onclick="hapusMenu('${m.id_menu}')">Hapus</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // 2. OPEN MODAL: Menyiapkan form untuk Tambah atau Edit
+        window.openMenuModal = function(id = null) {
+            document.getElementById('menu-modal').classList.remove('hidden');
+            
+            if (id) {
+                // Mode Edit: Isi form dengan data yang sudah ada
+                document.getElementById('modal-title').innerText = 'Edit Data Menu';
+                const menu = menuDataKatalog.find(m => m.id_menu === id);
+                
+                document.getElementById('form-id').value = menu.id_menu;
+                document.getElementById('form-nama').value = menu.nama_menu;
+                document.getElementById('form-harga').value = menu.harga;
+                document.getElementById('form-kategori').value = menu.kategori;
+                document.getElementById('form-status').value = menu.tersedia !== false ? "true" : "false";
+            } else {
+                // Mode Tambah: Kosongkan form
+                document.getElementById('modal-title').innerText = 'Tambah Menu Baru';
+                document.getElementById('form-id').value = '';
+                document.getElementById('form-nama').value = '';
+                document.getElementById('form-harga').value = '';
+                document.getElementById('form-kategori').value = 'Brew';
+                document.getElementById('form-status').value = 'true';
+            }
+        };
+
+        // CLOSE MODAL: Menutup pop-up form
+        window.closeMenuModal = function() {
+            document.getElementById('menu-modal').classList.add('hidden');
+        };
+
+        // 3. CREATE & UPDATE: Menyimpan data menu dari form
+        window.saveMenu = function() {
+            const id = document.getElementById('form-id').value;
+            const nama = document.getElementById('form-nama').value;
+            const harga = parseInt(document.getElementById('form-harga').value);
+            const kategori = document.getElementById('form-kategori').value;
+            const tersedia = document.getElementById('form-status').value === 'true';
+            
+            // Validasi input
+            if (!nama || !harga) {
+                showToast("Nama dan harga wajib diisi!", true);
+                return;
+            }
+
+            if (id) {
+                // Proses Update (Edit)
+                const index = menuDataKatalog.findIndex(m => m.id_menu === id);
+                if (index !== -1) {
+                    menuDataKatalog[index].nama_menu = nama;
+                    menuDataKatalog[index].harga = harga;
+                    menuDataKatalog[index].kategori = kategori;
+                    menuDataKatalog[index].tersedia = tersedia;
+                }
+            } else {
+                // Proses Create (Tambah Baru)
+                const newId = kategori.charAt(0) + Math.floor(Math.random() * 1000); // Generate ID otomatis
+                menuDataKatalog.push({
+                    id_menu: newId,
+                    nama_menu: nama,
+                    kategori: kategori,
+                    harga: harga,
+                    img: 'https://images.unsplash.com/photo-1551888204-517855b5506a?w=500&h=300&fit=crop', // Gambar template
+                    tersedia: tersedia
+                });
+            }
+            
+            // Simpan ke memory, tutup modal, dan segarkan tabel
+            localStorage.setItem('vigilance_menu', JSON.stringify(menuDataKatalog));
+            closeMenuModal();
+            loadAdminMenu(); 
+            
+            // Update juga tampilan menu di pelanggan jika sedang dibuka
+            if (typeof renderKatalog === "function") renderKatalog(); 
+            showToast("✅ Data menu berhasil disimpan!");
+        };
+
+        // 4. DELETE: Menghapus menu
+        window.hapusMenu = function(id) {
+            if (confirm('Anda yakin ingin menghapus menu ini dari daftar?')) {
+                menuDataKatalog = menuDataKatalog.filter(m => m.id_menu !== id);
+                localStorage.setItem('vigilance_menu', JSON.stringify(menuDataKatalog));
+                
+                loadAdminMenu();
+                if (typeof renderKatalog === "function") renderKatalog();
+                showToast("🗑️ Menu berhasil dihapus!");
+            }
+        };
+            </script>
+</body>
+</html>
