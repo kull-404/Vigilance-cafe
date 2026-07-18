@@ -167,7 +167,7 @@
                 <label>Password</label>
                 <input type="password" id="admin-pass" placeholder="Masukkan password">
             </div>
-            <button class="btn-primary" style="width: 100%; padding: 14px; font-size: 1rem; margin-top: 10px;" onclick="loginAdmin()"Masuk</button>
+            <button class="btn-primary" style="width: 100%; padding: 14px; font-size: 1rem; margin-top: 10px;" onclick="loginAdmin()">Login Masuk</button>
         </div>
     </div>
 
@@ -814,6 +814,11 @@
             if (index !== -1) {
                 savedOrders[index].status = 'Selesai';
                 localStorage.setItem('vigilance_orders', JSON.stringify(savedOrders)); // Update data di memori
+
+                // Render ulang status meja berdasarkan order aktif
+                if (state.pesananMode === 'Dine In') {
+                    // tidak perlu data tambahan, setMetode() menghitung dari vigilance_orders
+                }
                 loadAdminOrderan(); // Segarkan tampilan daftar order
                 loadDashboardStats(); // Segarkan angka dashboard (Orderan Baru berkurang)
                 showToast(`Orderan ${idOrder} selesai!`);
@@ -940,4 +945,3 @@
             </script>
 </body>
 </html>
-
