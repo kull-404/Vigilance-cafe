@@ -676,6 +676,29 @@ td { color: var(--text-dark); font-weight: 500; }
     box-shadow: 0 15px 30px rgba(0,0,0,0.3);
 }
 
+/* ================= ORDERAN MASUK HEADER & REFRESH ================= */
+.orderan-header {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 15px;
+}
+
+.btn-refresh {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--primary-brown);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-refresh:hover {
+    background: var(--primary-hover);
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
@@ -945,4 +968,286 @@ tr:hover td {
     color: #FF9B8A !important;
     transform: translateX(0) !important; /* override efek geser dari .nav-item:hover */
     box-shadow: 0 0 15px rgba(232, 140, 125, 0.25);
+}
+
+/* ================================================================
+   HALAMAN RIWAYAT / STATUS PESANAN (POST-CHECKOUT TRACKING)
+   Memakai token warna & pola glassmorphism yang sama dengan
+   #pelanggan-page, .method-box, dan .cart-sidebar di atas.
+   ================================================================ */
+
+#riwayat-page {
+    max-width: 100% !important;
+    min-height: 100vh;
+    margin: 0 !important;
+    padding: 40px 20px 140px 20px !important;
+    background: linear-gradient(rgba(30, 18, 13, 0.85), rgba(30, 18, 13, 0.95)),
+                url('https://images.unsplash.com/photo-1511920170033-f8396924c348?w=1920&q=80&fit=crop') center/cover fixed no-repeat;
+}
+
+.riwayat-container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding-top: 20px;
+}
+
+.riwayat-back {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+    display: block;
+    width: fit-content;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1.5px solid rgba(234, 204, 164, 0.5);
+    color: #EACCA4;
+    font-weight: 600;
+    border-radius: 50px;
+    padding: 10px 25px;
+    letter-spacing: 0.5px;
+}
+.riwayat-back:hover {
+    background: #EACCA4;
+    color: #1E120D;
+    box-shadow: 0 0 15px rgba(234, 204, 164, 0.4);
+}
+
+/* --- Bagian status & tracker --- */
+.status-hero {
+    text-align: center;
+    padding-bottom: 45px;
+    border-bottom: 1px dashed rgba(234, 204, 164, 0.2);
+    margin-bottom: 40px;
+}
+
+.eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #EACCA4;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+.eyebrow::before, .eyebrow::after {
+    content: "";
+    width: 22px; height: 1px;
+    background: linear-gradient(90deg, transparent, #EACCA4);
+}
+.eyebrow::after { background: linear-gradient(90deg, #EACCA4, transparent); }
+
+.table-tag {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    color: #EACCA4;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.status-headline {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    color: #FFFFFF;
+    letter-spacing: 0.01em;
+    margin-bottom: 6px;
+    text-shadow: 2px 4px 15px rgba(0,0,0,0.5);
+}
+
+.status-sub {
+    color: #A0AEC0;
+    font-size: 0.92rem;
+    font-weight: 300;
+    margin-bottom: 44px;
+}
+
+/* Signature element: pour-over drip tracker */
+.drip-tracker {
+    position: relative;
+    max-width: 520px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+.drip-line {
+    position: absolute;
+    top: 11px; left: 34px; right: 34px;
+    height: 2px;
+    background: rgba(234, 204, 164, 0.2);
+    z-index: 0;
+}
+.drip-line-fill {
+    position: absolute;
+    top: 0; left: 0; height: 100%;
+    background: linear-gradient(90deg, #EACCA4, #D4AF37);
+    width: 0%;
+    transition: width 0.6s ease;
+}
+.drip-stage {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 80px;
+}
+.drip-node {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: #1E120D;
+    border: 2px solid rgba(234, 204, 164, 0.3);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.4s ease;
+}
+.drip-stage.done .drip-node {
+    border-color: #EACCA4;
+    background: #EACCA4;
+    box-shadow: 0 0 0 4px rgba(234, 204, 164, 0.16);
+}
+.drip-stage.active .drip-node {
+    border-color: #EACCA4;
+    background: #1E120D;
+}
+.drip-stage.active .drip-node::after {
+    content: "";
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #EACCA4;
+    animation: pulse-dot 1.4s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.5); opacity: 0.5; }
+}
+.drip-stage.done .drip-node::after {
+    content: "✓";
+    font-size: 0.7rem;
+    color: #1E120D;
+    font-weight: 700;
+}
+.drip-label {
+    margin-top: 14px;
+    font-size: 0.72rem;
+    color: #A0AEC0;
+    text-align: center;
+    letter-spacing: 0.02em;
+    line-height: 1.3;
+}
+.drip-stage.active .drip-label { color: #FAEDCD; font-weight: 600; }
+.drip-stage.done .drip-label { color: #EACCA4; }
+
+/* --- Kartu ringkasan pesanan (matte glass, senada .cart-sidebar) --- */
+.summary-card {
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 24px;
+    padding: 32px 34px;
+    box-shadow: 0 20px 45px rgba(0,0,0,0.4);
+    margin-bottom: 28px;
+}
+.summary-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 22px;
+    border-bottom: 1.5px dashed rgba(234, 204, 164, 0.2);
+    padding-bottom: 14px;
+}
+.summary-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #EACCA4;
+}
+.order-id {
+    font-size: 0.78rem;
+    color: #A0AEC0;
+    letter-spacing: 0.03em;
+}
+
+.item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+}
+.item-row:last-of-type { border-bottom: none; }
+.item-left { display: flex; align-items: center; gap: 14px; }
+.item-qty {
+    font-size: 0.78rem;
+    color: #EACCA4;
+    border: 1px solid rgba(234, 204, 164, 0.3);
+    border-radius: 6px;
+    padding: 3px 8px;
+    min-width: 28px;
+    text-align: center;
+    font-weight: 600;
+}
+.item-name { font-size: 0.96rem; color: #FFFFFF; font-weight: 400; }
+.item-price { font-size: 0.92rem; color: #A0AEC0; font-weight: 300; }
+
+.divider-solid { height: 1px; background: rgba(255, 255, 255, 0.08); margin: 20px 0 18px; }
+
+.subtotal-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.subtotal-label { font-size: 0.85rem; color: #A0AEC0; }
+.subtotal-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #EACCA4;
+}
+
+.payment-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 14px 18px;
+}
+.payment-label { font-size: 0.78rem; color: #A0AEC0; }
+.payment-value {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.9rem; font-weight: 600; color: #EACCA4;
+}
+.payment-value .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--success);
+    box-shadow: 0 0 6px var(--success);
+}
+
+/* --- Aksi tambah pesanan --- */
+.action-area {
+    text-align: center;
+    margin-top: 10px;
+}
+.riwayat-add-btn {
+    max-width: 320px;
+    margin: 0 auto;
+}
+.action-note {
+    margin-top: 14px;
+    font-size: 0.78rem;
+    color: #A0AEC0;
+    font-weight: 300;
+}
+
+@media (max-width: 560px) {
+    .summary-card { padding: 24px 20px; }
+    .drip-tracker { max-width: 100%; }
+    .drip-line { left: 24px; right: 24px; }
 }

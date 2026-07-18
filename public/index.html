@@ -99,6 +99,62 @@
         </div>
     </div>
 
+    <!-- ================= RIWAYAT / STATUS PESANAN ================= -->
+    <div id="riwayat-page" class="hidden animate-fade">
+        <div class="riwayat-container">
+            <button class="btn-outline riwayat-back" onclick="location.reload()">&larr; Kembali ke Beranda</button>
+
+            <div class="status-hero">
+                <div class="eyebrow">Pesanan Aktif</div>
+                <div class="table-tag" id="riwayat-meja">Meja -</div>
+                <h1 class="status-headline" id="riwayat-status-headline">Menunggu Konfirmasi</h1>
+                <p class="status-sub" id="riwayat-status-sub">Pesanan Anda sedang diproses oleh kasir.</p>
+
+                <div class="drip-tracker">
+                    <div class="drip-line"><div class="drip-line-fill" id="drip-fill"></div></div>
+                    <div class="drip-stage" id="stage-1">
+                        <div class="drip-node"></div>
+                        <div class="drip-label">Menunggu<br>Konfirmasi</div>
+                    </div>
+                    <div class="drip-stage" id="stage-2">
+                        <div class="drip-node"></div>
+                        <div class="drip-label">Sedang<br>Diseduh</div>
+                    </div>
+                    <div class="drip-stage" id="stage-3">
+                        <div class="drip-node"></div>
+                        <div class="drip-label">Siap<br>Disajikan</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <div class="summary-head">
+                    <div class="summary-title">Ringkasan Pesanan</div>
+                    <div class="order-id" id="riwayat-orderid">#ORD-0000</div>
+                </div>
+
+                <div id="riwayat-items"></div>
+
+                <div class="divider-solid"></div>
+
+                <div class="subtotal-row">
+                    <span class="subtotal-label">Subtotal</span>
+                    <span class="subtotal-value" id="riwayat-total">Rp 0</span>
+                </div>
+
+                <div class="payment-row">
+                    <span class="payment-label">Metode Pembayaran</span>
+                    <span class="payment-value"><span class="dot"></span><span id="riwayat-payment">Cash</span></span>
+                </div>
+            </div>
+
+            <div class="action-area">
+                <button class="btn-checkout riwayat-add-btn" onclick="tambahPesananLagi()">+ Tambah Pesanan</button>
+                <p class="action-note">Pesanan tambahan akan dibuat untuk meja yang sama, tanpa antre ulang.</p>
+            </div>
+        </div>
+    </div>
+
     <!-- ================= ADMIN LOGIN ================= -->
     <div id="admin-login-page" class="hidden animate-fade" style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(rgba(17, 10, 8, 0.75), rgba(17, 10, 8, 0.85)), url('https://i.pinimg.com/1200x/32/51/72/325172abdf78322e653d17604839bdf3.jpg') center/cover no-repeat;">        <div class="admin-login-box">
             <button class="btn-outline" onclick="location.reload()" style="position: absolute; top: 30px; left: 30px; color: white; border-color: white;">&larr; Beranda</button>
@@ -153,8 +209,12 @@
                 <div class="chart-container"><h3 style="margin-bottom: 20px; color: #F7FAFC; font-size: 1.1rem;">Penjualan Kategori Menu</h3><canvas id="salesChart"></canvas></div>
             </div>
 
-            <div id="tab-orderan" class="hidden animate-fade"><div id="orderan-container"></div></div>
-            
+        <div id="tab-orderan" class="hidden animate-fade">
+            <div class="orderan-header">
+                <button class="btn-refresh" onclick="refreshOrderan()">Refresh</button>
+            </div>
+            <div id="orderan-container"></div>
+        </div>            
             <div id="tab-sensor" class="hidden animate-fade">
                 <p style="color: var(--text-muted); margin-bottom: 25px;">Sistem sedang memantau kondisi lingkungan kafe secara <i>real-time</i> via sensor IoT.</p>
                 <div class="stats-grid" id="iot-container"></div>
@@ -193,6 +253,7 @@
         const API_BASE = 'http://localhost:3000';
         let state = { keranjang: [], pesananMode: '', noMeja: null, kategoriAktif: 'Brew', metodeBayar: 'Cash' };
         let sensorInterval;
+        let riwayatInterval;
         let myChartInstance = null;
 
         // Custom Toast Function yang sudah diperbaiki
@@ -217,6 +278,7 @@
         }
 
         function showPage(pageId) {
+            if (riwayatInterval && pageId !== 'riwayat-page') clearInterval(riwayatInterval);
             document.querySelectorAll('body > div:not(#toast):not(.modal-overlay)').forEach(el => el.classList.add('hidden'));
             const page = document.getElementById(pageId);
             page.classList.remove('hidden');
@@ -411,6 +473,83 @@
             });
         }
 
+        //================== Halaman riwayat pesanan / status pesanan ==================
+        function showRiwayatPesanan(idOrder) {
+            renderRiwayatData(idOrder);
+            showPage('riwayat-page');
+            if (riwayatInterval) clearInterval(riwayatInterval);
+            riwayatInterval = setInterval(() => renderRiwayatData(idOrder), 3000);
+        }
+
+        function renderRiwayatData(idOrder) {
+            let savedOrders = JSON.parse(localStorage.getItem('vigilance_orders')) || [];
+            const order = savedOrders.find(o => o.id_order === idOrder);
+            if (!order) {
+                document.getElementById('riwayat-status-headline').innerText = 'Pesanan tidak ditemukan';
+                document.getElementById('riwayat-status-sub').innerText = 'Data pesanan tidak tersimpan. Coba ulangi checkout.';
+                return;
+            }
+
+            document.getElementById('riwayat-meja').innerText = `${order.meja}`;
+            document.getElementById('riwayat-orderid').innerText = order.id_order;
+            document.getElementById('riwayat-total').innerText = `Rp ${order.total.toLocaleString('id-ID')}`;
+            document.getElementById('riwayat-payment').innerText = state.metodeBayar || 'Cash';
+
+            // Render daftar item dari keranjang asli
+            const itemsContainer = document.getElementById('riwayat-items');
+            itemsContainer.innerHTML = '';
+            if (order.keranjangAsli && order.keranjangAsli.length > 0) {
+                order.keranjangAsli.forEach(item => {
+                    const row = document.createElement('div');
+                    row.className = 'item-row';
+                    row.innerHTML = `
+                        <div class="item-left">
+                            <span class="item-qty">${item.qty}x</span>
+                            <span class="item-name">${item.nama_menu}</span>
+                        </div>
+                        <span class="item-price">Rp ${(item.harga * item.qty).toLocaleString('id-ID')}</span>
+                    `;
+                    itemsContainer.appendChild(row);
+                });
+            } else {
+                itemsContainer.innerHTML = `<p style="color: var(--text-muted); font-size:0.85rem;">${order.items}</p>`;
+            }
+
+            // Tentukan tahapan berdasarkan status pesanan asli (Menunggu / Selesai)
+            const stage1 = document.getElementById('stage-1');
+            const stage2 = document.getElementById('stage-2');
+            const stage3 = document.getElementById('stage-3');
+            const dripFill = document.getElementById('drip-fill');
+            const headline = document.getElementById('riwayat-status-headline');
+            const sub = document.getElementById('riwayat-status-sub');
+
+            [stage1, stage2, stage3].forEach(s => s.classList.remove('done', 'active'));
+
+            if (order.status === 'Selesai') {
+                stage1.classList.add('done');
+                stage2.classList.add('done');
+                stage3.classList.add('done');
+                dripFill.style.width = '100%';
+                headline.innerText = 'Siap Disajikan';
+                sub.innerText = 'Pesanan Anda sudah selesai dibuat, selamat menikmati!';
+                if (riwayatInterval) clearInterval(riwayatInterval);
+            } else {
+                stage1.classList.add('done');
+                stage2.classList.add('active');
+                dripFill.style.width = '50%';
+                headline.innerText = 'Sedang Disiapkan';
+                sub.innerText = 'Pesanan Anda sedang diseduh oleh barista kami.';
+            }
+        }
+
+        // Tombol "Tambah Pesanan" pada halaman riwayat: kembali ke menu tanpa reset meja/mode
+        window.tambahPesananLagi = function() {
+            if (riwayatInterval) clearInterval(riwayatInterval);
+            showPage('pelanggan-page');
+            document.getElementById('step-metode').classList.add('hidden');
+            bukaMenuPelanggan();
+        };
+
         // ================== ADMIN LOGIC ==================
         async function loginAdmin() {
             const user = document.getElementById('admin-user').value;
@@ -538,21 +677,25 @@
             };
 
             // Ambil data orderan lama dari browser, lalu tambahkan yang baru
-            let savedOrders = JSON.parse(localStorage.getItem('vigilance_orders')) || [];
-            savedOrders.push(newOrder);
-            
-            // Simpan kembali ke browser
-            localStorage.setItem('vigilance_orders', JSON.stringify(savedOrders));
-
-            showToast("✅ Pesanan berhasil dibuat! Mohon tunggu sebentar.");
+           try {
+                let savedOrders = JSON.parse(localStorage.getItem('vigilance_orders')) || [];
+                savedOrders.push(newOrder);
+                localStorage.setItem('vigilance_orders', JSON.stringify(savedOrders));
+            } catch (err) {
+                console.error('Gagal menyimpan pesanan:', err);
+                showToast('Gagal menyimpan pesanan, coba buka lewat server.', true);
+                return;
+            }
+                        showToast("Pesanan berhasil dibuat! Mohon tunggu sebentar.");
             
             // Reset keranjang
             state.keranjang = [];
             renderKeranjangUI();
             
+            // Arahkan pelanggan ke halaman status pesanan, bukan langsung reload
             setTimeout(() => {
-                location.reload(); 
-            }, 2500);
+                showRiwayatPesanan(newOrder.id_order);
+            }, 1200);
         }
 // ================== ADMIN DASHBOARD & CHART (REAL DATA) ==================
         async function loadDashboardStats() {
@@ -619,6 +762,12 @@
         async function loadAdminOrderan() {
             let savedOrders = JSON.parse(localStorage.getItem('vigilance_orders')) || [];
             renderOrderanList(savedOrders);
+        }
+
+        function refreshOrderan() {
+            loadAdminOrderan();
+            loadDashboardStats();
+            showToast('🔄 Daftar orderan diperbarui!');
         }
 
         function renderOrderanList(orders) {
