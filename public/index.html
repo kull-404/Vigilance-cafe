@@ -841,16 +841,49 @@
                     ? '<span style="color: var(--success); font-weight: 600;">Tersedia</span>' 
                     : '<span style="color: var(--danger); font-weight: 600;">Habis</span>';
                 
-                tr.innerHTML = `
-                    <td>${m.id_menu}</td>
-                    <td><strong>${m.nama_menu}</strong><br><small style="color: #888;">${m.kategori}</small></td>
-                    <td>Rp ${m.harga.toLocaleString('id-ID')}</td>
-                    <td>${statusHtml}</td>
-                    <td style="display: flex; gap: 8px;">
-                        <button class="btn-outline" style="padding: 6px 12px; font-size: 0.8rem; margin: 0;" onclick="openMenuModal('${m.id_menu}')">Edit</button>
-                        <button class="btn-outline" style="padding: 6px 12px; font-size: 0.8rem; margin: 0; color: var(--danger); border-color: var(--danger);" onclick="hapusMenu('${m.id_menu}')">Hapus</button>
-                    </td>
-                `;
+tr.innerHTML = `
+    <td style="color:#EACCA4; font-weight:700;">
+        ${m.id_menu}
+    </td>
+
+    <td>
+        <strong style="color:#FFFFFF; font-size:1rem;">
+            ${m.nama_menu}
+        </strong><br>
+
+        <small style="color:#CBD5E0;">
+            ${m.kategori}
+        </small>
+    </td>
+
+    <td style="color:#FFD166; font-weight:700;">
+        Rp ${m.harga.toLocaleString('id-ID')}
+    </td>
+
+    <td>
+        ${statusHtml}
+    </td>
+
+    <td style="display:flex; gap:8px;">
+        <button class="btn-outline"
+            style="padding:6px 12px;
+                   font-size:0.8rem;
+                   margin:0;"
+            onclick="openMenuModal('${m.id_menu}')">
+            Edit
+        </button>
+
+        <button class="btn-outline"
+            style="padding:6px 12px;
+                   font-size:0.8rem;
+                   margin:0;
+                   color:#ff7b7b;
+                   border-color:#ff7b7b;"
+            onclick="hapusMenu('${m.id_menu}')">
+            Hapus
+        </button>
+    </td>
+`;
                 tbody.appendChild(tr);
             });
         }
